@@ -8,7 +8,7 @@
 	<xacro:macro name="dynamixel_motor_AX-12A_gazebo" params="name">
 
 		<gazebo reference="${name}_link">
-			<turnGravityOff>false</turnGravityOff>	
+			<turnGravityOff>true</turnGravityOff>	
 		</gazebo>
 
 	</xacro:macro>

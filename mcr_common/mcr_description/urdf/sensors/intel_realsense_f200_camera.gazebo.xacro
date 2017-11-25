@@ -11,7 +11,7 @@
 
 <xacro:macro name="intel_realsense_f200_depth_camera_gazebo" params="name">
   <gazebo reference="${name}_depth_frame">
-    <sensor type="camera" name="${name}_depth_frame_sensor">
+    <sensor type="depth" name="${name}_depth_frame_sensor"> <!--default camera-->
       <update_rate>20.0</update_rate>
       <camera name="${name}_depth_frame_sensor">
         <horizontal_fov>1.3439</horizontal_fov>
@@ -30,10 +30,10 @@
           <stddev>0.007</stddev>
         </noise>
       </camera>
-      <plugin name="${name}_depth_frame_controller" filename="libgazebo_ros_camera.so">
+     <plugin name="${name}_depth_frame_controller" filename="libgazebo_ros_depth_camera.so">
         <baseline>0.2</baseline>
         <alwaysOn>true</alwaysOn>
-        <updateRate>1.0</updateRate>
+        <updateRate>1.0</updateRate> <!--1.0 default-->
         <cameraName>${name}_ir</cameraName>
         <imageTopicName>/${name}/depth/image_raw</imageTopicName>
         <cameraInfoTopicName>/${name}/depth/camera_info</cameraInfoTopicName>
