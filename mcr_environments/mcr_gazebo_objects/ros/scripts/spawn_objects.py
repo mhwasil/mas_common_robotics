@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     
     # get object information
-    param_obj_preffix = "/simulation/objects"
+    param_obj_preffix = "/simulation/objects" #"/simulation/objects"
     object_names = rospy.get_param(param_obj_preffix)
     
     for obj_name in object_names:
