@@ -51,7 +51,11 @@ class SceneSegmentationNode
         double octree_resolution_;
 
     private:
+<<<<<<< HEAD
         void pointcloudCallback(const sensor_msgs::PointCloud2::Ptr &msg);
+=======
+        void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg);
+>>>>>>> d4daf43c5fd3bc6ca346a1257a6c1e61acbbffbb
         void eventCallback(const std_msgs::String::ConstPtr &msg);
         void config_callback(mcr_scene_segmentation::SceneSegmentationConfig &config, uint32_t level);
         void segment();

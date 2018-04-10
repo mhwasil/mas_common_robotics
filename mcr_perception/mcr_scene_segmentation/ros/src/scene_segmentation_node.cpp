@@ -4,7 +4,10 @@
 #include <pcl/point_types.h>
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/common/centroid.h>
+<<<<<<< HEAD
 #include "pcl_ros/transforms.h"
+=======
+>>>>>>> d4daf43c5fd3bc6ca346a1257a6c1e61acbbffbb
 
 #include <mcr_perception_msgs/BoundingBox.h>
 #include <mcr_perception_msgs/BoundingBoxList.h>
@@ -242,6 +245,10 @@ void SceneSegmentationNode::eventCallback(const std_msgs::String::ConstPtr &msg)
     else if(msg->data == "e_segment")
     {
         segment();
+<<<<<<< HEAD
+=======
+        cloud_accumulation_->reset();
+>>>>>>> d4daf43c5fd3bc6ca346a1257a6c1e61acbbffbb
         event_out.data = "e_done";
     }
     else if (msg->data == "e_reset")
@@ -252,6 +259,10 @@ void SceneSegmentationNode::eventCallback(const std_msgs::String::ConstPtr &msg)
     else if(msg->data == "e_stop")
     {
 		sub_cloud_.shutdown();
+<<<<<<< HEAD
+=======
+        cloud_accumulation_->reset();
+>>>>>>> d4daf43c5fd3bc6ca346a1257a6c1e61acbbffbb
 		event_out.data = "e_stopped";
 	}
     else
