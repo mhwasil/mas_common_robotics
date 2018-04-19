@@ -3,9 +3,15 @@
 # z axis normal to the plane
 geometry_msgs/PoseStamped pose
 
+# plane name
+string name
+
 # Point + normal vector of the plane
 geometry_msgs/PointStamped plane_point
 geometry_msgs/Vector3Stamped normal
+
+# Objects associated with plane
+mcr_perception_msgs/ObjectList object_list
 
 # These values give you the observed extents of the plane, along x and y,
 # in the plane's own coordinate system (above)
