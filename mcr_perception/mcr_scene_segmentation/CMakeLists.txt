@@ -17,6 +17,7 @@ find_package(catkin REQUIRED
     rospy
     tf
     visualization_msgs
+    sensor_msgs
 )
 find_package(PCL 1.7 REQUIRED)
 find_package(VTK REQUIRED)

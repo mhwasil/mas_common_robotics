@@ -57,6 +57,7 @@ class SceneSegmentationNode
         void config_callback(mcr_scene_segmentation::SceneSegmentationConfig &config, uint32_t level);
         void segment();
         geometry_msgs::PoseStamped getPose(const BoundingBox &box);
+        geometry_msgs::PoseStamped getObjectPickPose(const sensor_msgs::PointCloud2::Ptr &cloud, geometry_msgs::PoseStamped computedPickPose);
 
     public:
         SceneSegmentationNode();

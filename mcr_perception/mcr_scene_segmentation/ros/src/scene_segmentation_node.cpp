@@ -5,6 +5,11 @@
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/common/centroid.h>
 #include "pcl_ros/transforms.h"
+#include <pcl/conversions.h>
+
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/image_encodings.h>
+#include "pcl_ros/transforms.h"
 
 #include <mcr_perception_msgs/BoundingBox.h>
 #include <mcr_perception_msgs/BoundingBoxList.h>
@@ -12,11 +17,13 @@
 #include <mcr_perception_msgs/RecognizeObject.h>
 #include "mcr_scene_segmentation/impl/helpers.hpp"
 #include "mcr_scene_segmentation/bounding_box.h"
+#include "mcr_perception_msgs/PointCloud2List.h"
 
 #include <Eigen/Dense>
 
 #include "pcl_ros/point_cloud.h"
 #include <pcl_ros/transforms.h>
+#include <pcl/kdtree/kdtree_flann.h>
 
 SceneSegmentationNode::SceneSegmentationNode(): nh_("~"), bounding_box_visualizer_("bounding_boxes", Color(Color::SEA_GREEN)),
                                                           cluster_visualizer_("tabletop_clusters"), label_visualizer_("labels", mcr::visualization::Color(mcr::visualization::Color::TEAL)),
@@ -96,6 +103,7 @@ void SceneSegmentationNode::segment()
     cloud_accumulation_->getAccumulatedCloud(*cloud);
 
     std::vector<PointCloud::Ptr> clusters;
+     
     std::vector<BoundingBox> boxes;
     PointCloud::Ptr debug = scene_segmentation_.segment_scene(cloud, clusters, boxes);
     pub_debug_.publish(*debug);
@@ -111,6 +119,7 @@ void SceneSegmentationNode::segment()
     std::vector<std::string> labels;
 
     ros::Time now = ros::Time::now();
+    
     for (int i = 0; i < boxes.size(); i++)
     {
         convertBoundingBox(boxes[i], bounding_boxes.bounding_boxes[i]);
@@ -142,13 +151,14 @@ void SceneSegmentationNode::segment()
             object_list.objects[i].name = "unknown";
             object_list.objects[i].probability = 0.0;
         }
+
         labels.push_back(object_list.objects[i].name);
 
         geometry_msgs::PoseStamped pose = getPose(boxes[i]);
         pose.header.stamp = now;
         pose.header.frame_id = frame_id_;
-
-
+        
+        
         std::string target_frame_id;
         if (nh_.hasParam("target_frame_id"))
         {
@@ -183,14 +193,85 @@ void SceneSegmentationNode::segment()
         }
         poses.poses.push_back(object_list.objects[i].pose.pose);
         poses.header = object_list.objects[i].pose.header;
+        
+        
+        //check if object is M20_100 oe AXIS
+        if (object_list.objects[i].name == "M20_100" || object_list.objects[i].name == "AXIS")
+        {
+            object_list.objects[i].pointcloud = ros_cloud;
+            //geometry_msgs::PoseStamped desiredPickPose = getObjectPickPose(cloud, pose);
+            pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+            pcl::fromROSMsg(ros_cloud, *xyz_cloud);
+
+            int pcl_point_size = cloud->height * cloud->width;
+            
+            pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_higher_z_direction(new pcl::PointCloud<pcl::PointXYZ>);
+            pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_lower_z_direction(new pcl::PointCloud<pcl::PointXYZ>);
+
+            for (int i=0; i<pcl_point_size; i++)
+            {
+                std::cout<<xyz_cloud->points[i].z<<std::endl;
+            }
+
+        }
 
         object_list.objects[i].database_id = object_id_;
         object_id_++;
     }
+    
     pub_object_list_.publish(object_list);
     bounding_box_visualizer_.publish(bounding_boxes.bounding_boxes, frame_id_);
     cluster_visualizer_.publish<PointT>(clusters, frame_id_);
     label_visualizer_.publish(labels, poses);
+}
+
+
+geometry_msgs::PoseStamped SceneSegmentationNode::getObjectPickPose(const sensor_msgs::PointCloud2::Ptr &cloud, geometry_msgs::PoseStamped computedPickPose)
+{
+    double shifting_tolerance = 0.005;
+
+    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromROSMsg(*cloud, *xyz_cloud);
+
+    int pcl_point_size = cloud->height * cloud->width;
+    
+    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_higher_z_direction(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_lower_z_direction(new pcl::PointCloud<pcl::PointXYZ>);
+
+    for (int i=0; i<pcl_point_size; i++)
+    {
+        std::cout<<xyz_cloud->points[i].z<<std::endl;
+    }
+
+    /*pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+    kdtree.setInputCloud(*cloud);
+
+    pcl::PointXYZ searchPoint;
+
+    searchPoint.x = computedPickPose.pose.position.x;
+    searchPoint.y = computedPickPose.pose.position.y;
+    searchPoint.z = computedPickPose.pose.position.z;
+
+    int K = 10;
+
+    std::vector<int> pointIdxNKNSearch(K);
+    std::vector<float> pointNKNSquaredDistance(K);
+
+    if (kdtree.nearestKSearch (searchPoint, K, pointIdxNKNSearch, pointNKNSquareDistance) > 0)
+    {
+        for ()
+    }*/
+
+    geometry_msgs::PoseStamped pose;
+    pose.pose.position.x = 1;
+    pose.pose.position.y = 1;
+    pose.pose.position.z = 1;
+    pose.pose.orientation.x = 0;
+    pose.pose.orientation.y = 0;
+    pose.pose.orientation.z = 0;
+    pose.pose.orientation.w = 1;
+    
+    return pose;
 }
 
 geometry_msgs::PoseStamped SceneSegmentationNode::getPose(const BoundingBox &box)
