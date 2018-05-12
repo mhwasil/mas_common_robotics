@@ -58,8 +58,18 @@ if __name__ == '__main__':
         rospy.loginfo('Received [%s] request.' % SERVICE)
         cloud = request.cloud
         xyzhsv = convert_to_xyzhsv(cloud)
+        mean_colour = np.median(xyzhsv, axis=0)
         features = calculate_feature_vector(xyzhsv, True)
         label, probability = classifier.classify(features)
+        if 'Container' in label or 'CONTAINER' in label:
+            # this is [x, y, z, h, s ,v]
+            print mean_colour
+            # Hue value is typically approx 0.9-0.1 for Red and 0.55 for Blue
+            # NOTE: hue value is circular, so 0.99 is very close to 0.01
+            if mean_colour[3] > 0.4 and  mean_colour[3] < 0.7:
+                label = 'CONTAINER_BOX_BLUE'
+            else:
+                label = 'CONTAINER_BOX_RED'
         resp = RecognizeObjectResponse()
         resp.name = label
         resp.probability = probability
