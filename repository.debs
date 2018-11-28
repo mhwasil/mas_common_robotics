@@ -1,0 +1,43 @@
+#!/bin/bash
+if [ $# == 0 ]; then
+    INSTALL_PACKAGES=true
+else
+    INSTALL_PACKAGES=$1
+fi
+
+# create list of packages to install
+packagelist=(
+    libcap2-bin
+    libudev-dev
+    libv4l-dev
+    python-catkin-tools
+    python-pygraphviz
+    python-rosinstall
+    python-setuptools
+    python-zmq
+    libsvm-dev
+    ros-melodic-moveit-core
+    ros-melodic-moveit-commander
+    ros-melodic-moveit-msgs
+    ros-melodic-moveit-planners
+    ros-melodic-moveit-ros-move-group
+    ros-melodic-moveit-setup-assistant
+    ros-melodic-moveit-simple-controller-manager
+)
+
+### install debian packages listed in array above
+if [ $INSTALL_PACKAGES != false ]; then
+    sudo apt-get update
+    sudo apt-get install -y ${packagelist[@]}
+fi
+
+### install further repositories
+rosinstall .. /opt/ros/melodic mas-common.rosinstall
+
+### install dependencies of BRSU repositories
+dependent_repositories=$(grep -r "local-name:" mas-common.rosinstall  | cut -d":" -f 2 | sed -r 's/\s+//g')
+for i in $dependent_repositories
+do
+    cd ../$i
+    if [ -f repository.debs ]; then ./repository.debs $INSTALL_PACKAGES ; fi
+done
